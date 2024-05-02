@@ -101,7 +101,6 @@ class _PurchasePageState extends State<PurchasePage> {
               Tab(text: 'Poster'),
             ],
           ),
-          title: Text('Total Penjualan: $totalItems Items'),
         ),
         body: TabBarView(
           children: [
@@ -110,6 +109,88 @@ class _PurchasePageState extends State<PurchasePage> {
             productList(photoCardProducts),
             productList(posterProducts),
           ],
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child: Container(
+            height: 50,
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text('Total Penjualan: $totalItems Items - IDR $totalPrice'),
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          // Membuat daftar item yang telah dikonfirmasi
+                          List<Widget> confirmedItemsList = [];
+                          for (var product in keychainProducts) {
+                            if (product['quantity'] > 0) {
+                              confirmedItemsList.add(Text(
+                                  '${product['name']}: ${product['quantity']}'));
+                            }
+                          }
+                          for (var product in stickerProducts) {
+                            if (product['quantity'] > 0) {
+                              confirmedItemsList.add(Text(
+                                  '${product['name']}: ${product['quantity']}'));
+                            }
+                          }
+                          for (var product in photoCardProducts) {
+                            if (product['quantity'] > 0) {
+                              confirmedItemsList.add(Text(
+                                  '${product['name']}: ${product['quantity']}'));
+                            }
+                          }
+                          for (var product in posterProducts) {
+                            if (product['quantity'] > 0) {
+                              confirmedItemsList.add(Text(
+                                  '${product['name']}: ${product['quantity']}'));
+                            }
+                          }
+
+                          return AlertDialog(
+                            title: const Text('Konfirmasi Pesanan'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: [
+                                  const Text(
+                                      'Apakah Anda yakin ingin mengkonfirmasi pesanan ini?'),
+                                  ...confirmedItemsList,
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Tutup dialog
+                                },
+                                child: const Text('Tidak'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  // Logika untuk mengkonfirmasi pesanan
+                                  Navigator.of(context).pop(); // Tutup dialog
+                                },
+                                child: const Text('Iya'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: const Text('Konfirmasi Pesanan'),
+                  ),
+                ],
+              ),
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(width: 2.0, color: Colors.blue),
+              ),
+            ),
+          ),
         ),
       ),
     );
