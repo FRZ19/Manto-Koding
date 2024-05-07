@@ -26,26 +26,122 @@ class _PurchasePageState extends State<PurchasePage> {
   int totalItems = 0;
   int totalPrice = 0;
 
-  // Menambahkan list produk untuk setiap kategori
-  final List<Map<String, dynamic>> keychainProducts = [
-    {'name': 'Keychain A', 'price': 50000, 'quantity': 0},
-    {'name': 'Keychain B', 'price': 30000, 'quantity': 0},
+  List<Map<String, dynamic>> keychainProducts = [
+    {'name': 'Keychain A', 'price': '50rb', 'quantity': 0},
+    {'name': 'Keychain B', 'price': '30rb', 'quantity': 0},
   ];
 
-  final List<Map<String, dynamic>> stickerProducts = [
-    {'name': 'Sticker A', 'price': 20000, 'quantity': 0},
-    {'name': 'Sticker B', 'price': 15000, 'quantity': 0},
+  List<Map<String, dynamic>> stickerProducts = [
+    {'name': 'Sticker A', 'price': '20rb', 'quantity': 0},
+    {'name': 'Sticker B', 'price': '15rb', 'quantity': 0},
   ];
 
-  final List<Map<String, dynamic>> photoCardProducts = [
-    {'name': 'Photo Card A', 'price': 10000, 'quantity': 0},
-    {'name': 'Photo Card B', 'price': 12000, 'quantity': 0},
+  List<Map<String, dynamic>> photoCardProducts = [
+    {'name': 'Photo Card A', 'price': '10rb', 'quantity': 0},
+    {'name': 'Photo Card B', 'price': '12rb', 'quantity': 0},
   ];
 
-  final List<Map<String, dynamic>> posterProducts = [
-    {'name': 'Poster A', 'price': 40000, 'quantity': 0},
-    {'name': 'Poster B', 'price': 45000, 'quantity': 0},
+  List<Map<String, dynamic>> posterProducts = [
+    {'name': 'Poster A', 'price': '40rb', 'quantity': 0},
+    {'name': 'Poster B', 'price': '45rb', 'quantity': 0},
   ];
+
+  void editProduct(List<Map<String, dynamic>> products, int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final _nameController =
+            TextEditingController(text: products[index]['name']);
+        final _priceController =
+            TextEditingController(text: products[index]['price']);
+        return AlertDialog(
+          title: Text('Edit Product'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  products[index]['name'] = _nameController.text;
+                  products[index]['price'] = _priceController.text;
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void deleteProduct(List<Map<String, dynamic>> products, int index) {
+    setState(() {
+      products.removeAt(index);
+    });
+  }
+
+  void addProduct(List<Map<String, dynamic>> products) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final _nameController = TextEditingController();
+        final _priceController = TextEditingController();
+        return AlertDialog(
+          title: Text('Add Product'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  products.add({
+                    'name': _nameController.text,
+                    'price': _priceController.text,
+                    'quantity': 0,
+                  });
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget productList(List<Map<String, dynamic>> products) {
     return ListView.builder(
@@ -58,13 +154,22 @@ class _PurchasePageState extends State<PurchasePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () => editProduct(products, index),
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () => deleteProduct(products, index),
+              ),
+              IconButton(
                 icon: Icon(Icons.remove),
                 onPressed: () {
                   setState(() {
                     if (products[index]['quantity'] > 0) {
                       products[index]['quantity']--;
                       totalItems--;
-                      totalPrice -= products[index]['price'] as int;
+                      totalPrice -= int.parse(
+                          products[index]['price'].replaceAll('rb', ''));
                     }
                   });
                 },
@@ -76,7 +181,8 @@ class _PurchasePageState extends State<PurchasePage> {
                   setState(() {
                     products[index]['quantity']++;
                     totalItems++;
-                    totalPrice += products[index]['price'] as int;
+                    totalPrice += int.parse(
+                        products[index]['price'].replaceAll('rb', ''));
                   });
                 },
               ),
@@ -84,6 +190,15 @@ class _PurchasePageState extends State<PurchasePage> {
           ),
         );
       },
+    );
+  }
+
+  Widget addProductForm(List<Map<String, dynamic>> products) {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () => addProduct(products),
+        child: Text('Add Product'),
+      ),
     );
   }
 
@@ -104,10 +219,18 @@ class _PurchasePageState extends State<PurchasePage> {
         ),
         body: TabBarView(
           children: [
-            productList(keychainProducts),
-            productList(stickerProducts),
-            productList(photoCardProducts),
-            productList(posterProducts),
+            keychainProducts.isEmpty
+                ? addProductForm(keychainProducts)
+                : productList(keychainProducts),
+            stickerProducts.isEmpty
+                ? addProductForm(stickerProducts)
+                : productList(stickerProducts),
+            photoCardProducts.isEmpty
+                ? addProductForm(photoCardProducts)
+                : productList(photoCardProducts),
+            posterProducts.isEmpty
+                ? addProductForm(posterProducts)
+                : productList(posterProducts),
           ],
         ),
         bottomNavigationBar: BottomAppBar(
