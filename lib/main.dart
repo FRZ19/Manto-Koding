@@ -27,24 +27,27 @@ class _PurchasePageState extends State<PurchasePage> {
   int totalPrice = 0;
 
   List<Map<String, dynamic>> keychainProducts = [
-    {'name': 'Keychain A', 'price': '50rb', 'quantity': 0},
-    {'name': 'Keychain B', 'price': '30rb', 'quantity': 0},
+    {'name': 'Keychain A', 'price': '50000', 'quantity': 0, 'stock': 0},
+    {'name': 'Keychain B', 'price': '30000', 'quantity': 0, 'stock': 0},
   ];
 
   List<Map<String, dynamic>> stickerProducts = [
-    {'name': 'Sticker A', 'price': '20rb', 'quantity': 0},
-    {'name': 'Sticker B', 'price': '15rb', 'quantity': 0},
+    {'name': 'Sticker A', 'price': '20000', 'quantity': 0, 'stock': 0},
+    {'name': 'Sticker B', 'price': '15000', 'quantity': 0, 'stock': 0},
   ];
 
   List<Map<String, dynamic>> photoCardProducts = [
-    {'name': 'Photo Card A', 'price': '10rb', 'quantity': 0},
-    {'name': 'Photo Card B', 'price': '12rb', 'quantity': 0},
+    {'name': 'Photo Card A', 'price': '10000', 'quantity': 0, 'stock': 0},
+    {'name': 'Photo Card B', 'price': '12000', 'quantity': 0, 'stock': 0},
   ];
 
   List<Map<String, dynamic>> posterProducts = [
-    {'name': 'Poster A', 'price': '40rb', 'quantity': 0},
-    {'name': 'Poster B', 'price': '45rb', 'quantity': 0},
+    {'name': 'Poster A', 'price': '40000', 'quantity': 0, 'stock': 0},
+    {'name': 'Poster B', 'price': '45000', 'quantity': 0, 'stock': 0},
   ];
+
+  // Tambahkan TextEditingController untuk mengelola input stok
+  final TextEditingController _stockController = TextEditingController();
 
   void editProduct(List<Map<String, dynamic>> products, int index) {
     showDialog(
@@ -54,6 +57,9 @@ class _PurchasePageState extends State<PurchasePage> {
             TextEditingController(text: products[index]['name']);
         final _priceController =
             TextEditingController(text: products[index]['price']);
+        _stockController.text =
+            products[index]['stock'].toString(); // Set nilai stok
+
         return AlertDialog(
           title: Text('Edit Product'),
           content: Column(
@@ -68,6 +74,12 @@ class _PurchasePageState extends State<PurchasePage> {
                 decoration: InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
               ),
+              TextField(
+                controller: _stockController,
+                decoration:
+                    InputDecoration(labelText: 'Stock'), // Tambahkan input stok
+                keyboardType: TextInputType.number,
+              ),
             ],
           ),
           actions: [
@@ -80,6 +92,8 @@ class _PurchasePageState extends State<PurchasePage> {
                 setState(() {
                   products[index]['name'] = _nameController.text;
                   products[index]['price'] = _priceController.text;
+                  products[index]['stock'] =
+                      int.parse(_stockController.text); // Update nilai stok
                 });
                 Navigator.pop(context);
               },
@@ -103,6 +117,7 @@ class _PurchasePageState extends State<PurchasePage> {
       builder: (BuildContext context) {
         final _nameController = TextEditingController();
         final _priceController = TextEditingController();
+
         return AlertDialog(
           title: Text('Add Product'),
           content: Column(
@@ -115,6 +130,12 @@ class _PurchasePageState extends State<PurchasePage> {
               TextField(
                 controller: _priceController,
                 decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _stockController,
+                decoration:
+                    InputDecoration(labelText: 'Stock'), // Tambahkan input stok
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -131,6 +152,7 @@ class _PurchasePageState extends State<PurchasePage> {
                     'name': _nameController.text,
                     'price': _priceController.text,
                     'quantity': 0,
+                    'stock': int.parse(_stockController.text), // Tambahkan stok
                   });
                 });
                 Navigator.pop(context);
@@ -143,13 +165,30 @@ class _PurchasePageState extends State<PurchasePage> {
     );
   }
 
+  void increaseStock(List<Map<String, dynamic>> products, int index) {
+    setState(() {
+      if (_stockController.text.isNotEmpty) {
+        products[index]['stock'] += int.parse(_stockController.text);
+      }
+    });
+  }
+
+  void decreaseStock(List<Map<String, dynamic>> products, int index) {
+    setState(() {
+      if (_stockController.text.isNotEmpty) {
+        products[index]['stock'] -= int.parse(_stockController.text);
+      }
+    });
+  }
+
   Widget productList(List<Map<String, dynamic>> products) {
     return ListView.builder(
       itemCount: products.length,
       itemBuilder: (context, index) {
         return ListTile(
           title: Text(products[index]['name']),
-          subtitle: Text('IDR ${products[index]['price']}'),
+          subtitle: Text(
+              'IDR ${products[index]['price']} - Stock: ${products[index]['stock']}'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -185,6 +224,15 @@ class _PurchasePageState extends State<PurchasePage> {
                         products[index]['price'].replaceAll('rb', ''));
                   });
                 },
+              ),
+              IconButton(
+                icon: Icon(Icons.remove),
+                onPressed: () => decreaseStock(products, index),
+              ),
+              Text('${products[index]['stock']}'),
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () => increaseStock(products, index),
               ),
             ],
           ),
